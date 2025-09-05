@@ -1,22 +1,29 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Xml;
 using SRParser.Model;
 
-namespace SRParser;
+namespace SRParser.Converter;
 
 public class TreeToJsonConverter
 {
-    public static string Convert(TreeNode<SRCodeValue> node)
+    public static string Convert2Json(TreeNode<SRCodeValue> node)
     {
         var dictionary = new Dictionary<string, object>();
         ConvertNodeToDictionary(node, dictionary, level: 0);
         var options = new JsonSerializerOptions
         {
-            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             WriteIndented = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
-
         return JsonSerializer.Serialize(dictionary, options);
+    }
+
+    public static Dictionary<string, object> Convert2Dict(TreeNode<SRCodeValue> node)
+    {
+        var dictionary = new Dictionary<string, object>();
+        ConvertNodeToDictionary(node, dictionary, level: 0);
+        return dictionary;
     }
 
     private static void ConvertNodeToDictionary(TreeNode<SRCodeValue> node, Dictionary<string, object> dictionary,
@@ -37,7 +44,7 @@ public class TreeToJsonConverter
 
             Guid guid = Guid.NewGuid();
             string shortGuid = guid.GetHashCode().ToString("X");
-            dictionary[$"{child.Value.Code}_{shortGuid}"] = childDictionary;
+            dictionary[$"{child.Value.Code.Replace(" ", "")}_{shortGuid}"] = childDictionary;
         }
     }
 }

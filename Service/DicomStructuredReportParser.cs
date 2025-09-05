@@ -1,5 +1,6 @@
 ﻿using FellowOakDicom;
 using FellowOakDicom.StructuredReport;
+using SRParser.Converter;
 using SRParser.Helper;
 using SRParser.Model;
 
@@ -7,7 +8,7 @@ namespace SRParser.Service;
 
 public class DicomStructuredReportParser
 {
-    private TreeNode<SRCodeValue> RootNode { get; set; }
+    public TreeNode<SRCodeValue> RootNode { get; set; }
     private DicomStructuredReport RootDocument { get; set; }
 
     public DicomStructuredReportParser(DicomDataset dataset)
@@ -17,6 +18,28 @@ public class DicomStructuredReportParser
         var srCodeValue = new SRCodeValue { Code = RootDocument.Code.Meaning };
         RootNode = new TreeNode<SRCodeValue>(srCodeValue);
     }
+
+    private void WriteToString(DicomContentItem item, int level)
+    {
+        string valueOrDefault = item.Dataset.GetValueOrDefault<string>(DicomTag.RelationshipType, 0, string.Empty);
+        string str1 = string.IsNullOrEmpty(valueOrDefault) ? string.Empty : valueOrDefault + " ";
+        string str2 = !(item.Code != null)
+            ? str1 + string.Format("{0} {1}", (object)"(no code provided)",
+                (object)item.Dataset.GetValueOrDefault<string>(DicomTag.ValueType, 0, "UNKNOWN"))
+            : str1 + string.Format("{0} {1}", (object)item.Code.ToString(),
+                (object)item.Dataset.GetSingleValueOrDefault<string>(DicomTag.ValueType, "UNKNOWN"));
+
+        try
+        {
+            str2 += string.Format(" [{0}]", (object)item.Get<string>());
+        }
+        catch
+        {
+        }
+
+        Console.WriteLine($"{new string(' ', (level + 1) * 2)} {str2}");
+    }
+
 
     public void Parse(TreeNode<SRCodeValue>? parentNode, DicomContentItem? item, int level = 0)
     {
@@ -44,10 +67,16 @@ public class DicomStructuredReportParser
         }
     }
 
+    public Dictionary<string, object> ToDictionary()
+    {
+        if (!RootNode.HasChild()) throw new Exception("RootNode is null, please parse first.");
+        return TreeToJsonConverter.Convert2Dict(RootNode);
+    }
+
     public string ToJson()
     {
         if (!RootNode.HasChild()) throw new Exception("RootNode is null, please parse first.");
-        return TreeToJsonConverter.Convert(RootNode);
+        return TreeToJsonConverter.Convert2Json(RootNode);
     }
 
     private TreeNode<SRCodeValue> AddSRCodeValue(TreeNode<SRCodeValue> parentNode, DicomContentItem item)
