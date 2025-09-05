@@ -1,5 +1,6 @@
 ﻿using FellowOakDicom;
 using FellowOakDicom.StructuredReport;
+using SRParser.Converter;
 using SRParser.Helper;
 using SRParser.Model;
 

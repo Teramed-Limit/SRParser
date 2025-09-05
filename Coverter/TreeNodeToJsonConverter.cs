@@ -2,7 +2,7 @@
 using System.Text.Json;
 using SRParser.Model;
 
-namespace SRParser;
+namespace SRParser.Converter;
 
 public class TreeToJsonConverter
 {

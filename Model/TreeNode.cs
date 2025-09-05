@@ -1,4 +1,6 @@
-﻿public class TreeNode<T>
+﻿namespace SRParser.Model;
+
+public class TreeNode<T>
 {
     // Property to hold the value of the node
     public T Value { get; set; }
